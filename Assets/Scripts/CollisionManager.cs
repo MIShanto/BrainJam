@@ -12,7 +12,8 @@ public class CollisionManager : MonoBehaviour
         DoorSwitch,
         WheelSwitch,
         SpikeArea,
-        CameraBullet
+        CameraBullet,
+        EndingObject
     }
     public ObjectType currentObjectType;    // store type of this object.
     private MovingPlatform movingPlatform;
@@ -22,8 +23,25 @@ public class CollisionManager : MonoBehaviour
     private DoorSwitch doorSwitch;
     private WheelSwitch wheelSwitch;
     private CameraBullet cameraBullet;
+    private float timeElapsedSinceSpikeDamage;
+    private bool playerExitedSpike = true;
 
-
+    private void Update()
+    {
+        if (currentObjectType == ObjectType.SpikeArea)
+        {
+            if ((timeElapsedSinceSpikeDamage > GameManagerRocky.instance.spikeDamageInterval) && (playerExitedSpike == false))
+            {
+                timeElapsedSinceSpikeDamage = 0;
+                GameManagerRocky.playerHealth.TakeDamage(GameManagerRocky.instance.spikeDamageAmount);
+            }
+            timeElapsedSinceSpikeDamage += Time.deltaTime;
+            if (timeElapsedSinceSpikeDamage > 10000f)
+            {
+                timeElapsedSinceSpikeDamage = 1000f;
+            }
+        }
+    }
 
     private void Start()
     {
@@ -58,14 +76,23 @@ public class CollisionManager : MonoBehaviour
     {
         if (currentObjectType == ObjectType.DoorSwitch)
         {
-            TriggerEnterDoorSwitch();
+            if (!collision.CompareTag("Enemy") && !collision.CompareTag("PlayerBullet")) 
+                TriggerEnterDoorSwitch();
         }
         else if (currentObjectType == ObjectType.WheelSwitch)
         {
-            TriggerEnterWheelSwitch();
+            if (!collision.CompareTag("Enemy") && !collision.CompareTag("PlayerBullet"))
+                TriggerEnterWheelSwitch();
+        }
+        else if (currentObjectType == ObjectType.CameraBullet)
+        {
+            if (collision.gameObject.layer == GameManagerRocky.PlatformLayer || collision.gameObject.layer == GameManagerRocky.PlayerLayer)
+            {
+                TriggerEnterCameraBullet();
+            }
         }
 
-        else if (collision.gameObject.layer == GameManager.PlayerLayer)
+        else if (collision.gameObject.layer == GameManagerRocky.PlayerLayer)
         {
             switch (currentObjectType)
             {
@@ -75,8 +102,14 @@ public class CollisionManager : MonoBehaviour
                 case ObjectType.SpikeArea:
                     TriggerEnterSpikeArea();
                     break;
-                case ObjectType.CameraBullet:
-                    TriggerEnterCameraBullet();
+                // case ObjectType.CameraBullet:
+                //     TriggerEnterCameraBullet();
+                //     break;
+                case ObjectType.Hammer:
+                    TriggerEnterHammer();
+                    break;
+                case ObjectType.EndingObject:
+                    TriggerEnterEndingObject();
                     break;
                 default:
                     break;
@@ -84,25 +117,32 @@ public class CollisionManager : MonoBehaviour
         }
     }
 
+    private void TriggerEnterEndingObject()
+    {
+        GameManagerRocky.instance.LoadNextScene();
+    }
+
     private void TriggerEnterCameraBullet()
     {
-        Debug.Log("<insert player damage due to camera bullet code here >");
+        // Debug.Log("<insert player damage due to camera bullet code here >");
+        Destroy(gameObject);
     }
 
     private void TriggerEnterSpikeArea()
     {
-        Debug.Log("<insert player damage code here>");
+        playerExitedSpike = false;
+        // Debug.Log("<insert player damage code here>");
     }
 
     private void TriggerEnterWheelSwitch()
     {
-        wheelSwitchAnimator.SetBool(GameManager.IsDoorSwitchOnAnimBool, true);
+        wheelSwitchAnimator.SetBool(GameManagerRocky.IsDoorSwitchOnAnimBool, true);
         wheelSwitch.StartRotation();
     }
 
     private void TriggerEnterDoorSwitch()
     {
-        doorSwitchAnimator.SetBool(GameManager.IsDoorSwitchOnAnimBool, true);
+        doorSwitchAnimator.SetBool(GameManagerRocky.IsDoorSwitchOnAnimBool, true);
         doorSwitch.OpenTheGate();
 
     }
@@ -114,12 +154,15 @@ public class CollisionManager : MonoBehaviour
             TriggerExitDoorSwitch();
         }
 
-        if (collision.gameObject.layer == GameManager.PlayerLayer)
+        if (collision.gameObject.layer == GameManagerRocky.PlayerLayer)
         {
             switch (currentObjectType)
             {
                 case ObjectType.MovingPlatform:
                     TriggerExitMovingPlatform();
+                    break;
+                case ObjectType.SpikeArea:
+                    TriggerExitSpikeArea();
                     break;
                 default:
                     break;
@@ -127,29 +170,32 @@ public class CollisionManager : MonoBehaviour
         }
     }
 
+    private void TriggerExitSpikeArea()
+    {
+        playerExitedSpike = true;
+    }
+
     private void TriggerExitDoorSwitch()
     {
-        doorSwitchAnimator.SetBool(GameManager.IsDoorSwitchOnAnimBool, false);
+        doorSwitchAnimator.SetBool(GameManagerRocky.IsDoorSwitchOnAnimBool, false);
         doorSwitch.CloseTheGate();
     }
 
-    // private void TriggerEnterHammer()
-    // {
-    //     if (hammer.canDealDamage)
-    //     {
-    //          GameManager.Player_Health.ModifyHealth(-GameManager.HammerObstacleDamage);
-    //     }
-    // }
+    private void TriggerEnterHammer()
+    {
+        GameManagerRocky.playerHealth.TakeDamage(1000f);
+
+    }
 
 
     private void TriggerExitMovingPlatform()
     {
-        GameManager.PlayerTransform.SetParent(GameManager.PlayerParentTransform);
+        GameManagerRocky.PlayerTransform.SetParent(GameManagerRocky.PlayerParentTransform);
     }
 
     private void TriggerEnterMovingPlatform()
     {
-        GameManager.PlayerTransform.SetParent(transform);   // change parent to move the player with the platform.
+        GameManagerRocky.PlayerTransform.SetParent(transform);   // change parent to move the player with the platform.
     }
 
 }
