@@ -8,12 +8,12 @@ public class playerBullet : MonoBehaviour
     {
         if (gameObject.CompareTag("PlayerBullet"))
         {
-            if (collision.CompareTag("Boss") || collision.CompareTag("Enemy") || collision.CompareTag("Platform") || collision.CompareTag("EnemyBullet"))
+            if (collision.CompareTag("Boss") || collision.CompareTag("Enemy") || collision.CompareTag("Platform") || collision.CompareTag("BossBullet"))
             {
                 Destroy(gameObject);
             }
         }
-        else if (gameObject.CompareTag("EnemyBullet"))
+        else if (gameObject.CompareTag("BossBullet"))
         {
             if (collision.CompareTag("Player") || collision.CompareTag("Platform") || collision.CompareTag("PlayerBullet"))
             {

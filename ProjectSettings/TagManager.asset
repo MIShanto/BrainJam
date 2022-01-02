@@ -19,6 +19,8 @@ TagManager:
   - Stone3
   - Stone4
   - SpecialBullet
+  - FxTemporaire
+  - BossBullet
   layers:
   - Default
   - TransparentFX
@@ -31,12 +33,12 @@ TagManager:
   - Player
   - Platform
   - Boss
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Enemy1
+  - Enemy2
+  - Enemy3
+  - Enemy4
+  - Enemy5
+  - Enemy6
   - 
   - 
   - 
